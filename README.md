@@ -10,7 +10,6 @@ A modern, high-performance real-time messaging application built with **Jetpack 
 | :---: | :---: | :---: |
 | [PLACEHOLDER: Add Screenshot/GIF] | [PLACEHOLDER: Add Screenshot/GIF] | [PLACEHOLDER: Add Screenshot/GIF] |
 
-> **Note:** [PLACEHOLDER: Link to a Screen Recording or YouTube Demo if available]
 
 ---
 
@@ -43,21 +42,3 @@ This project follows **Google's Recommended Architecture** guidelines for robust
 * **Architecture:** MVVM (Model-View-ViewModel) + Clean Architecture (Data, Domain, UI layers)
 
 ---
-
-## 📂 Project Structure
-
-```text
-app
- ┣ 📂 data
- ┃ ┣ 📂 repository    # Implementation of domain repositories
- ┃ ┣ 📂 local         # Room DAOs, Entities, and Database setup
- ┃ ┗ 📂 remote        # Firebase Service implementations
- ┣ 📂 domain
- ┃ ┣ 📂 model         # Pure Kotlin Data Classes
- ┃ ┗ 📂 repository    # Interface definitions
- ┣ 📂 ui
- ┃ ┣ 📂 screens       # Compose screen entry points
- ┃ ┣ 📂 components    # Reusable UI widgets
- ┃ ┣ 📂 theme         # Color, Type, and Shape definitions
- ┃ ┗ 📂 viewmodel     # UI logic and state holders
- ┗ 📂 di              # Hilt Modules
