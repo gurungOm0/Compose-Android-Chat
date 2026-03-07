@@ -22,10 +22,12 @@ object HomeDes: Destinations {
 
 object ChatDes: Destinations {
     override val route = "chat"
+    fun createRoute(chatId: String) = "chat/$chatId"
 }
 
 object ProfileDes: Destinations {
     override val route = "profile"
+    fun createRoute(profileId: String) = "profile/$profileId"
 }
 
 object SettingsDes: Destinations {

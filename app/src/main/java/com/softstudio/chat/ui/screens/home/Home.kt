@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
@@ -38,6 +39,7 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -58,6 +60,9 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.softstudio.chat.models.UserProfile
 import com.softstudio.chat.models.dbmodels.ConversationDb
+import com.softstudio.chat.models.dbmodels.UserDb
+import com.softstudio.chat.navigation.ChatDes
+import com.softstudio.chat.navigation.ProfileDes
 import com.softstudio.chat.ui.theme.ChatTheme
 import com.softstudio.chat.util.formatChatTimestamp
 import kotlinx.coroutines.launch
@@ -66,7 +71,31 @@ import kotlinx.coroutines.launch
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeUiPreview() {
-    val state = HomeUiState()
+    val mockConversations = listOf(
+        ConversationDb(
+            conversationId = "1",
+            participantsId = listOf("1", "2"),
+            participantLookupKey = "1|2",
+            lastMessage = "Hey, how are you?",
+            conversationName = "John Doe",
+            lastMessageTimestamp = System.currentTimeMillis(),
+            unreadCount = 2
+        ),
+        ConversationDb(
+            conversationId = "2",
+            participantsId = listOf("1", "3"),
+            participantLookupKey = "1|3",
+            lastMessage = "See you tomorrow!",
+            conversationName = "Jane Smith",
+            lastMessageTimestamp = System.currentTimeMillis() - 3600000,
+            unreadCount = 0
+        )
+    )
+    val state = HomeUiState(
+        conversations = mockConversations,
+        currentProfile = UserDb(displayName = "Sudhanshu", isAnonymous = true),
+        isAnonymous = true
+    )
     ChatTheme {
         HomeUi(
             state = state,
@@ -101,7 +130,7 @@ fun Home(
             scope.launch { drawerState.close() }
         },
         onUserClick = { user ->
-            viewModel.onUserClick(user)
+            viewModel.onUserClick(user){ navHostController.navigate(ProfileDes.createRoute(user)) }
         },
         onSearchToggle = { enabled ->
             scope.launch {
@@ -114,7 +143,7 @@ fun Home(
         },
         onConversationClick = { id ->
             scope.launch { drawerState.close() }
-            viewModel.onConversationClick(id)
+            viewModel.onConversationClick(id){ navHostController.navigate(ChatDes.createRoute(id)) }
         }
     )
 }
@@ -126,7 +155,7 @@ fun HomeUi(
     drawerState: DrawerState,
     onMenuClick: () -> Unit,
     onProfileClick: () -> Unit,
-    onUserClick: (UserProfile) -> Unit,
+    onUserClick: (String) -> Unit,
     onSearchToggle: (Boolean) -> Unit,
     onQueryChange: (String) -> Unit,
     onConversationClick: (String) -> Unit
@@ -135,6 +164,12 @@ fun HomeUi(
     ModalNavigationDrawer(
         drawerContent = {
             Drawer(
+                currentProfile = state.currentProfile,
+                isAnonymous = state.isAnonymous,
+                linkAccount = {
+                    //TODO: Link Account
+                    scope.launch { drawerState.close() }
+                },
                 onProfileClick = onProfileClick,
                 onSettingsClick = {
                     //TODO: Navigate to Settings
@@ -160,11 +195,13 @@ fun HomeUi(
                 }
             ) { innerPadding ->
                 if (state.isSearchMode) {
-                    LazyColumn(modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                    ) {
                         items(state.searchResults) { user ->
-                            UserSearchItem(user = user, onClick = { onUserClick(user) })
+                            UserSearchItem(user = user, onClick = { onUserClick(user.id) })
                         }
                     }
                 } else {
@@ -263,6 +300,9 @@ fun UserSearchItem(user: UserProfile, onClick: () -> Unit) {
 
 @Composable
 fun Drawer(
+    currentProfile: UserDb?,
+    isAnonymous: Boolean,
+    linkAccount: () -> Unit,
     onProfileClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onLogoutClick: () -> Unit
@@ -276,6 +316,35 @@ fun Drawer(
             Text("CHAT", style = MaterialTheme.typography.labelLarge)
         }
         Spacer(modifier = Modifier.height(16.dp))
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (currentProfile?.imageUrl.isNullOrBlank()) {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(CircleShape)
+                    )
+                } else {
+                    AsyncImage(
+                        model = currentProfile.imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                    )
+                }
+                Text(
+                    text = currentProfile?.displayName ?: "Unknown",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
         NavigationDrawerItem(
             label = { Text("Profile") },
             selected = false,
@@ -289,6 +358,25 @@ fun Drawer(
             onClick = onSettingsClick
         )
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        if (isAnonymous) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp),
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.error,
+                tonalElevation = 4.dp,
+                shadowElevation = 4.dp,
+                onClick = linkAccount
+            ) {
+                Text(
+                    text = "You are logged in as anonymous user, Link account to avoid losing current account !\nClick here to link account.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(8.dp),
+                    color = MaterialTheme.colorScheme.onError
+                )
+            }
+        }
         NavigationDrawerItem(
             label = { Text("Logout") },
             selected = false,
@@ -305,15 +393,15 @@ fun Drawer(
 fun ConversationPreview() {
     val state = HomeUiState()
     val conversation = ConversationDb(
-        "",
-        listOf(),
-        "",
-        "Aady",
-        null,
-        999985400000,
-        1,
-        false,
-        "Hello !"
+        conversationId = "1",
+        participantsId = listOf("1", "2"),
+        participantLookupKey = "1|2",
+        conversationName = "Aady",
+        avatarUrl = null,
+        lastMessageTimestamp = 999985400000,
+        unreadCount = 1,
+        isPinned = false,
+        lastMessage = "Hello !"
     )
     ChatTheme {
         Conversation(state, conversation) { }
@@ -331,7 +419,7 @@ fun Conversation(
         modifier = Modifier
             .fillMaxWidth()
             .defaultMinSize(minHeight = 88.dp)
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -412,4 +500,11 @@ fun Conversation(
 
         }
     }
+    Spacer(
+        modifier = Modifier
+            .height(0.5.dp)
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.onBackground)
+            .padding(horizontal = 18.dp)
+    )
 }

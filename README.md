@@ -6,10 +6,9 @@ A modern, high-performance real-time messaging application built with **Jetpack 
 
 ## 📸 Preview
 
-| Login Screen | Chat List | Messaging UI |
-| :---: | :---: | :---: |
-| [PLACEHOLDER: Add Screenshot/GIF] | [PLACEHOLDER: Add Screenshot/GIF] | [PLACEHOLDER: Add Screenshot/GIF] |
-
+|                       Login Screen                        |                        Onboarding Screen                        |                         Chat List                         |                             Messaging UI                             |
+|:---------------------------------------------------------:|:---------------------------------------------------------------:|:---------------------------------------------------------:|:--------------------------------------------------------------------:|
+| <img src="./readme_media/auth_screen.png" height="350" /> | <img src="./readme_media/onboarding_screen.png" height="350" /> | <img src="./readme_media/home_screen.png" height="350" /> | **System Architecture Ready** <br> _(UI Implementation in Progress)_ |
 
 ---
 

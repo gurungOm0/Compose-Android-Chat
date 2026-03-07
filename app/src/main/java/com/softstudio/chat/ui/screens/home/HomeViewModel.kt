@@ -80,12 +80,20 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun onUserClick(user: UserProfile){
-        // TODO: Chat screen with user
+    /** On clicking search result users **/
+    fun onUserClick(id: String,navigate: () -> Unit){
+        // TODO: Chat screen with user, needs Chat screen
+        navigate()
     }
 
-    fun onConversationClick(id: String){
-        // TODO: Opens Conversation
+    /** On clicking conversations or Home Screen Chats**/
+    fun onConversationClick(id: String,navigate: () -> Unit){
+        // TODO: Opens Conversation needs Chat screen
+        navigate()
+    }
+
+    fun linkAccount(){
+        // TODO: Link account needs profile screen
     }
 
 }
